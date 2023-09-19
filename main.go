@@ -19,7 +19,7 @@ type apiConfig struct {
 	DB *db.Queries
 }
 
-func main(){
+func main() {
 
 	godotenv.Load()
 
@@ -36,7 +36,7 @@ func main(){
 
 	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal("Can't connect to DB: ",err)
+		log.Fatal("Can't connect to DB: ", err)
 	}
 
 	apiCfg := apiConfig{
@@ -47,23 +47,23 @@ func main(){
 
 	router.Use(cors.Handler(
 		cors.Options{
-			AllowedOrigins: []string{"https:*", "http:*" },
+			AllowedOrigins: []string{"https:*", "http:*"},
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-			MaxAge: 300,
+			MaxAge:         300,
 		}))
 
 	v1Router := chi.NewRouter()
 
 	v1Router.Get("/healthz", checkReadiness)
 	v1Router.Post("/create_user", apiCfg.handlerCreateUser)
-	v1Router.Get("/get_user_by_key", apiCfg.handlerGetUserByKey)
+	v1Router.Get("/get_user_by_key", apiCfg.middlewareAuth(apiCfg.handlerGetUserByKey))
 
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
 		Handler: router,
-		Addr: ":" + port,
+		Addr:    ":" + port,
 	}
 
 	err = srv.ListenAndServe()
