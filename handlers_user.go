@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/enesonus/go-rss-aggregator/internal/auth"
 	"github.com/enesonus/go-rss-aggregator/internal/db"
 	"github.com/google/uuid"
 )
 
-func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request){
+func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Username string `json:"username"`
 	}
@@ -23,12 +22,12 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	user, err := apiCfg.DB.CreateUser(r.Context(), db.CreateUserParams{
-			ID: uuid.New(),
-			Username: params.Username,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		})
-		
+		ID:        uuid.New(),
+		Username:  params.Username,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
 	if err != nil {
 		respondwithJSON(w, 400, map[string]string{"error": fmt.Sprintf("%v", err)})
 	}
@@ -36,16 +35,6 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	respondwithJSON(w, 201, databaseUserToUser(user))
 }
 
-func (apiCfg *apiConfig) handlerGetUserByKey(w http.ResponseWriter, r *http.Request){
-	apiKey, err := auth.GetAPIKey(r.Header)
-	if err != nil {
-		respondwithJSON(w, 403, map[string]string{"error": fmt.Sprintf("%v", err)})
-		return
-	}
-	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey) 
-	if err != nil {
-		respondwithJSON(w, 400, map[string]string{"error": fmt.Sprintf("%v", err)})
-		return
-	}
+func (apiCfg *apiConfig) handlerGetUserByKey(w http.ResponseWriter, r *http.Request, user db.User) {
 	respondwithJSON(w, 200, databaseUserToUser(user))
 }
